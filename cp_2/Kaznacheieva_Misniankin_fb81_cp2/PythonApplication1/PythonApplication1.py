@@ -18,7 +18,7 @@ def encrypt(file,result_file, key):
     fin = open (file, "rt", encoding="utf-8")
     fout = open(result_file, "wt", encoding="utf-8")
     text = fin.read()
-    #print(text)
+    print(text)
     txt=''
     n=0
     for i in range(0, len(text)):
@@ -46,32 +46,36 @@ def decrypt(file,result_file, key):
             #print (dtxt)
 
 
-def count_frequency(text):
-    frequency = {}
-    count = Counter(text)
-    for i in count:
-        frequency[i] = count[i]
-    return frequency
-
-def count_index(filename):
-    f = open(filename)
-    text = f.read()
-    leng = len(text)
-    if leng == 1:
-        result = 1 / ((leng) * leng)
+def c_ind(txt):
+    
+    l=len(txt)
+    if l==1:
+        res=1/l/l
     else:
-        result = 1 / ((leng - 1) * leng)
+        res=1/(l-1)/l
 
-    freq = count_frequency(text)
+    freq = c_freq(txt)
     sum = 0
-    for letter in freq:
-        sum += freq[letter] * (freq[letter] - 1)
-    c=result*sum
-    print(c)
+    for let in freq:
+        sum = sum + freq[let] * (freq[let] - 1)
+    c=res*sum
     return c
 
-def divided(fulltext, n):
-    return [fulltext[i:i + n] for i in range(0, len(fulltext), n)]
+
+def c_freq(text):
+    freq = {}
+    c = Counter(text)
+    for f in c:
+        freq[f] = c[f]
+    return freq
+
+
+
+def divided(txt, block_num):
+    arr = []
+    for cnt in range(0, len(txt), block_num):
+        arr.append(txt[cnt:cnt+block_num])
+    return arr
 
 
 def find_key(filename):
@@ -81,21 +85,24 @@ def find_key(filename):
         parttext = divided(fulltext, i)
         temp = ""
         for n in parttext:
-            temp = temp + n[0]
+            temp += n[0]
         sum_of_blocks = count_index(temp)
         print("i = ", i, "index = ", sum_of_blocks)
 
-def most_freq_letter(frequency):
-    max_val = max(frequency.values())
+def most_freq_letter(index_list):
+    max_index = 0
+    indexes = index_list.values()
+    for ind in indexes:
+        if ind > max_index:
+            max_index = ind
+    return get_key(index_list, max_index)
 
-    return get_key(frequency, max_val)
 
-
-def get_key(let, value):
-    for k, v in let.items():
-        if v == value:
-            return k
-
+def get_key(dict, num):
+    key_list = list(dict.keys())
+    val_list = list(dict.values())
+    position = val_list.index(num)
+    return key_list[position]
 
 def search_key(filename, len_of_key):
     fin = open (filename, "rt", encoding="utf-8")
@@ -106,12 +113,12 @@ def search_key(filename, len_of_key):
     print (russian_most_used)
     for let in russian_most_used:
         res = ""
-        for i in range(0, len_of_key):
+        for k in range(0, len_of_key):
            temp = ""
-           for n in key_list:
-                if len(n) > i:
-                    temp = temp + n[i]
-           ll = most_freq_letter(count_frequency(temp))
+           for m in key_list:
+                if  k < len(m) :
+                    temp += m[k]
+           ll = most_freq_letter(c_freq(temp))
            key = (ord(ll) - ord(let)) % 32 + 1072
            res = res + chr(key)
            print("With ", let, "result is", res, '\n')
@@ -121,6 +128,5 @@ def search_key(filename, len_of_key):
 
 
 #find_key('text.txt')
-#search_key('text.txt', 15)
-encrypt('justtext.txt', 'encryptedst.txt', key_5)
-count_index('encryptedst.txt')
+search_key('text.txt', 15)
+#encrypt('small.txt', 'decryted.txt', key_5)
